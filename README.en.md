@@ -67,6 +67,14 @@ instructions, or at the start of a conversation.
 7. **True**, even when simplified.
 8. **Short**: it fits on one screen.
 
+## Vikidia as a source
+
+When the AI needs to look something up, it reads **Vikidia** first, in the
+language of your question, through its API. If the article doesn't exist in
+that language, it reads the French version (the largest edition) and rewrites
+it in English. Simple English Wikipedia and Wikipedia come last, and the
+source is always cited.
+
 ## Gallery
 
 [galerie/](galerie/) collects the best explanations made with the skill.
