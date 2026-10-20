@@ -1,0 +1,3 @@
+An API is a service desk that lets two programs talk to each other. One program asks a question. The other answers.
+A phone's weather app has no satellite. It asks a weather service's API for the temperature. The API answers: 64 degrees.
+The first web APIs appeared around 2000, at companies like Salesforce and eBay.

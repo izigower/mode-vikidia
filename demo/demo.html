@@ -151,8 +151,51 @@ const mix = (a, b, p) => a + (b - a) * p;
 const $ = id => document.getElementById(id);
 
 const DUREE = 13;            // secondes, boucle complète
-const QUESTION = "C'est quoi une API ?";
-const SCORE_AVANT = 26, SCORE_APRES = 72;   // calculés par evals/lisibilite.py
+const PARAMS = new URLSearchParams(location.hash.slice(1));
+
+// textes par langue ; scores calculés par evals/lisibilite.py (--en pour l'anglais)
+const TEXTES = {
+  fr: {
+    question: "C'est quoi une API ?", avant: 26, apres: 72,
+    etapes: ["1 · La question", "2 · La réponse habituelle", "3 · On ajoute /vikidia", "4 · Le résultat"],
+  },
+  en: {
+    question: "What is an API?", avant: 10, apres: 67,
+    etapes: ["1 · The question", "2 · The usual answer", "3 · Add /vikidia", "4 · The result"],
+    html: {
+      slogan: `Same question, same AI. <em>Finally clear.</em>`,
+      '#gauche .entete': `Usual answer`,
+      '#droite .entete': `Vikidia mode · middle-school level`,
+      wiki: `<h2>Application programming interface</h2>
+      <p>An application programming interface (API) is a <mark class="j">standardized</mark> set of
+      <mark class="j">classes</mark>, methods, functions and <mark class="j">constants</mark> acting as a
+      <mark class="j">façade</mark> through which one piece of software exposes services to others. It is
+      typically provided by a <mark class="j">software library</mark> or a web service and accompanied by a
+      <mark class="j">specification</mark> describing how <mark class="j">consumer programs</mark> may leverage
+      the provider's functionality, independently of its underlying <mark class="j">implementation</mark>.</p>
+      <h3>Typology</h3>
+      <p>Local APIs, resolved at <mark class="j">link time</mark>, are distinguished from remote APIs built on
+      protocols such as <mark class="j">REST</mark>, SOAP or GraphQL, whose interface contracts are often
+      described using the <mark class="j">OpenAPI</mark> specification.</p>`,
+      '#droite .def': `An API is a <span class="souligne" id="guichet">service desk</span> that lets two programs talk to each other.`,
+      '#droite .suite': `One program asks a question, the other answers.`,
+      bex: `<div class="titre">For example</div>
+        A phone's weather app has no satellite. It asks a weather service's API for the temperature. The API answers: “64 °F”.`,
+      bsav: `<div class="titre">Did you know?</div>
+        The first web APIs appeared around 2000, at companies like Salesforce and eBay.`,
+      '#jg .lib span': `Readability`, '#jd .lib span': `Readability`,
+      lg: `very hard`, ld: `easy (age 13+)`,
+    },
+  },
+};
+const LANGUE = TEXTES[PARAMS.get('lang')] ? PARAMS.get('lang') : 'fr';
+const L = TEXTES[LANGUE];
+document.documentElement.lang = LANGUE;
+Object.entries(L.html || {}).forEach(([cle, html]) => {
+  (document.getElementById(cle) || document.querySelector(cle)).innerHTML = html;
+});
+const QUESTION = L.question;
+const SCORE_AVANT = L.avant, SCORE_APRES = L.apres;
 
 // découpe en mots des paragraphes data-mots (en gardant les balises internes)
 const groupes = [];
@@ -191,7 +234,7 @@ function rendre(t) {
   $('caret').style.opacity = tape || Math.floor(t * 2.2) % 2 === 0 ? 1 : 0;
 
   // étape affichée en haut à droite
-  const etapes = [[0, "1 · La question"], [1.7, "2 · La réponse habituelle"], [4.7, "3 · On ajoute /vikidia"], [5.9, "4 · Le résultat"]];
+  const etapes = [0, 1.7, 4.7, 5.9].map((debut, i) => [debut, L.etapes[i]]);
   const et = etapes.filter(e => t >= e[0]).pop();
   $('etape').textContent = et[1];
   const pe = Math.min(...etapes.map(e => t - e[0]).filter(x => x >= 0));
@@ -270,8 +313,7 @@ function rendre(t) {
   $('voile').style.opacity = Math.max(1 - seg(t, 0, .3), seg(t, DUREE - .45, .45));
 }
 
-const ancre = location.hash.match(/t=([\d.]+)/);
-if (ancre) rendre(parseFloat(ancre[1]));
+if (PARAMS.has('t')) rendre(parseFloat(PARAMS.get('t')));
 else {
   const t0 = performance.now();
   const boucle = () => { rendre(((performance.now() - t0) / 1000) % DUREE); requestAnimationFrame(boucle); };

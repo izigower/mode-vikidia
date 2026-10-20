@@ -1,5 +1,7 @@
 <div align="center">
 
+<b>🇫🇷 Français</b> · <a href="README.en.md">🇬🇧 English</a>
+
 # mode-vikidia
 
 **Ton IA t'explique tout comme un article de Vikidia :<br>des phrases courtes, des mots expliqués, des exemples de la vraie vie.**

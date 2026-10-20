@@ -20,5 +20,7 @@ celle que tu voudrais. Les règles changent seulement si l'exemple convainc.
 
 ## Autres langues
 
-Une version anglaise pourrait s'inspirer de la *Simple English Wikipedia*.
-Crée `skills/simple-en/` et ouvre une PR.
+Le skill répond déjà dans la langue de la question (français, anglais…).
+Pour une nouvelle langue, ajoute un prompt dans `prompts/`, un README traduit
+et l'animation : `demo/demo.html` contient les textes par langue, puis
+`./demo/rendu.sh <langue>` fabrique le GIF.

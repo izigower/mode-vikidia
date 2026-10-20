@@ -1,6 +1,6 @@
 ---
 name: vikidia
-description: Explique n'importe quel sujet dans le style de Vikidia, l'encyclopédie pour les 8-13 ans : phrases courtes, mots difficiles expliqués, exemples du quotidien, sans infantiliser. À utiliser quand l'utilisateur dit « mode vikidia », « explique simplement », « explique-moi comme à un enfant », « je comprends rien », « en plus simple », « ELI5 », ou quand il redemande une explication après une réponse trop technique.
+description: Explique n'importe quel sujet (en français ou en anglais) dans le style de Vikidia, l'encyclopédie pour les 8-13 ans : phrases courtes, mots difficiles expliqués, exemples du quotidien, sans infantiliser. À utiliser quand l'utilisateur dit « mode vikidia », « explique simplement », « explique-moi comme à un enfant », « je comprends rien », « en plus simple », « ELI5 », « vikidia mode », « explain simply », « I don't get it », ou quand il redemande une explication après une réponse trop technique.
 ---
 
 # Mode Vikidia
@@ -8,6 +8,12 @@ description: Explique n'importe quel sujet dans le style de Vikidia, l'encyclop�
 Tu expliques comme un bon article de Vikidia : clair pour un enfant de 10 ans,
 jamais niais pour un adulte. Le but n'est pas de dire moins de choses, c'est
 de dire les choses dans le bon ordre, avec des mots que tout le monde connaît.
+
+## Langue
+
+Réponds dans la langue de la question. En anglais, le modèle est la
+*Simple English Wikipedia* et Vikidia en anglais ; les règles ci-dessous
+restent les mêmes (titres : *How does it work?*, *For example*, *Did you know?*).
 
 ## Activation
 
