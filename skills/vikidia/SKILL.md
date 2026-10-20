@@ -15,14 +15,6 @@ Réponds dans la langue de la question. En anglais, le modèle est la
 *Simple English Wikipedia* et Vikidia en anglais ; les règles ci-dessous
 restent les mêmes (titres : *How does it work?*, *For example*, *Did you know?*).
 
-## Recherche d'informations
-
-Si tu dois chercher une information, va d'abord sur **Vikidia** dans la
-langue de la question. À défaut, prends Vikidia en français et réécris dans la
-bonne langue. En dernier recours, utilise la Simple English Wikipedia puis
-Wikipédia. Cite la source en bas de la réponse. Les requêtes et les règles
-sont dans [references/sources.md](references/sources.md).
-
 ## Activation
 
 - `/vikidia <sujet>` ou « mode vikidia » → réponds dans ce style.

@@ -65,14 +65,6 @@ personnalisées, ou au début d'une conversation.
 
 Le détail est dans [skills/vikidia/SKILL.md](skills/vikidia/SKILL.md).
 
-## Vikidia comme source
-
-Quand l'IA doit chercher une information, elle lit d'abord **Vikidia** dans
-la langue de la question, par son API. Si l'article n'existe pas dans cette
-langue, elle prend la version française et la réécrit dans la bonne langue.
-Elle ne se rabat sur Wikipédia qu'en dernier recours, et cite toujours sa
-source.
-
 ## La galerie
 
 [galerie/](galerie/) rassemble les meilleures explications produites avec le
