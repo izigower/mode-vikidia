@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>mode-vikidia — démo</title>
+<!--
+  Animation déterministe : l'image affichée dépend uniquement de #t=<secondes>.
+  demo/rendu.sh capture une image par pas de temps puis assemble GIF et MP4.
+  Ouvert sans #t, la page joue l'animation en boucle dans le navigateur.
+-->
+<style>
+  :root {
+    --fond: #F3EFE6; --encre: #1E1D1B; --gris: #6B675F; --trait: #DDD6C8;
+    --rouge: #E5484D; --rouge-pale: #FFD9D6; --vert: #2F9E5B; --vert-pale: #CDEFD9;
+    --bleu-pale: #E3EEFB; --bleu: #2D6CC0; --jaune: #FFE58A; --jaune-fonce: #8A6A00;
+    --vik: #F28C28;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: var(--fond);
+    font-family: "Noto Sans", "Liberation Sans", sans-serif; color: var(--encre); }
+  #scene { position: relative; width: 1280px; height: 720px; }
+
+  /* barre du haut */
+  .logo { position: absolute; left: 48px; top: 26px; font-weight: 800; font-size: 19px; letter-spacing: -.2px; }
+  .logo b { color: var(--vik); }
+  .etape { position: absolute; right: 48px; top: 27px; font-size: 15px; color: var(--gris); font-weight: 600; }
+  .etape span { display: inline-block; }
+  .slogan { position: absolute; left: 0; right: 0; top: 24px; text-align: center; font-size: 20px; font-weight: 800; }
+  .slogan em { font-style: normal; color: var(--vert); }
+
+  /* champ de saisie */
+  .prompt { position: absolute; left: 48px; right: 48px; top: 70px; height: 62px; background: #fff;
+    border-radius: 16px; border: 1.5px solid var(--trait); display: flex; align-items: center; padding: 0 22px;
+    font-size: 22px; box-shadow: 0 6px 24px rgba(60,50,30,.06); }
+  .prompt .chevron { color: var(--vik); font-weight: 800; margin-right: 14px; }
+  .chip { display: inline-block; background: var(--vik); color: #fff; font-weight: 700; font-size: 19px;
+    padding: 5px 12px; border-radius: 9px; margin-right: 0; overflow: hidden; white-space: nowrap; }
+  .caret { display: inline-block; width: 2.5px; height: 27px; background: var(--encre); margin-left: 2px; vertical-align: middle; }
+
+  /* cartes */
+  .carte { position: absolute; top: 158px; width: 568px; height: 446px; border-radius: 18px; background: #fff;
+    border: 1.5px solid var(--trait); overflow: hidden; box-shadow: 0 10px 34px rgba(60,50,30,.08); }
+  #gauche { left: 48px; }
+  #droite { left: 664px; border-color: #F6C79A; }
+  .entete { height: 40px; display: flex; align-items: center; padding: 0 20px; font-size: 14px; font-weight: 700;
+    letter-spacing: .4px; text-transform: uppercase; }
+  #gauche .entete { background: #F2F2F0; color: #77736B; border-bottom: 1px solid #E6E3DC; }
+  #droite .entete { background: var(--vik); color: #fff; }
+
+  /* gauche : encyclopédie adulte */
+  .wiki { padding: 16px 24px 0; font-size: 15.5px; line-height: 1.6; color: #2A2925; }
+  .wiki h2 { font-family: "Noto Serif", "Liberation Serif", serif; font-weight: 400; font-size: 30px;
+    border-bottom: 1px solid #C8CCD1; padding-bottom: 2px; margin-bottom: 10px; }
+  .wiki h3 { font-size: 16px; font-weight: 700; margin: 12px 0 4px; }
+  .wiki p { text-align: justify; hyphens: auto; }
+  mark.j { position: relative; background: none; color: inherit; padding: 0 1px; border-radius: 3px;
+    background-image: linear-gradient(var(--rouge-pale), var(--rouge-pale)); background-repeat: no-repeat;
+    background-size: 0% 100%; }
+  mark.j .q { position: absolute; right: -7px; top: -12px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--rouge); color: #fff; font-size: 11px; font-weight: 800; line-height: 16px; text-align: center;
+    box-shadow: 0 0 0 2px #fff;
+    transform: scale(0); }
+
+  /* droite : mode Vikidia */
+  .vik { padding: 16px 26px 0; }
+  .vik h2 { font-size: 32px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 6px; }
+  .vik .def { font-size: 21px; line-height: 1.38; font-weight: 700; }
+  .vik .suite { font-size: 18.5px; line-height: 1.45; margin-top: 8px; color: #33312C; }
+  .mot { display: inline-block; white-space: pre; }
+  #gauche::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 70px;
+    background: linear-gradient(rgba(255,255,255,0), #fff 85%); }
+  .souligne { background-image: linear-gradient(#9FE0B6, #9FE0B6); background-repeat: no-repeat;
+    background-position: 0 90%; background-size: 0% 42%; }
+  .boite { margin-top: 14px; border-radius: 12px; padding: 11px 16px; font-size: 17px; line-height: 1.45; }
+  .boite .titre { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+  .exemple { background: var(--bleu-pale); }
+  .exemple .titre { color: var(--bleu); }
+  .savais { background: #FFF6CC; border: 1.5px dashed #E8C64A; }
+  .savais .titre { color: var(--jaune-fonce); }
+
+  /* jauges de lisibilité */
+  .jauge { position: absolute; top: 622px; width: 568px; height: 62px; }
+  #jg { left: 48px; } #jd { left: 664px; }
+  .jauge .lib { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; color: var(--gris); font-weight: 600; }
+  .jauge .lib b { font-size: 26px; color: var(--encre); font-variant-numeric: tabular-nums; }
+  .jauge .lib small { font-size: 14px; font-weight: 700; margin-left: 8px; }
+  .rail { margin-top: 6px; height: 12px; border-radius: 6px; background: #E4DED1; overflow: hidden; }
+  .rail i { display: block; height: 100%; border-radius: 6px; width: 0; }
+  #jg .rail i { background: var(--rouge); } #jd .rail i { background: var(--vert); }
+  #jg small { color: var(--rouge); } #jd small { color: var(--vert); }
+
+  #voile { position: absolute; inset: 0; background: var(--fond); pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="scene">
+  <div class="logo">mode-<b>vikidia</b></div>
+  <div class="etape"><span id="etape"></span></div>
+  <div class="slogan" id="slogan">Même question, même IA. <em>Enfin compréhensible.</em></div>
+
+  <div class="prompt" id="prompt">
+    <span class="chevron">›</span><span class="chip" id="chip">/vikidia</span><span id="saisie"></span><span class="caret" id="caret"></span>
+  </div>
+
+  <div class="carte" id="gauche">
+    <div class="entete">Réponse habituelle</div>
+    <div class="wiki" id="wiki">
+      <h2>Interface de programmation</h2>
+      <p>Une API (de l'anglais <i>application programming interface</i>) est un ensemble
+      <mark class="j">normalisé</mark> de <mark class="j">classes</mark>, de méthodes, de fonctions et de
+      <mark class="j">constantes</mark> servant de <mark class="j">façade</mark> par laquelle un logiciel offre des
+      services à d'autres logiciels. Elle est généralement exposée par une
+      <mark class="j">bibliothèque logicielle</mark> ou un service web et accompagnée d'une
+      <mark class="j">spécification</mark> décrivant comment les <mark class="j">programmes consommateurs</mark>
+      peuvent exploiter les fonctionnalités du programme fournisseur, indépendamment de son
+      <mark class="j">implémentation</mark>.</p>
+      <h3>Typologie</h3>
+      <p>On distingue les API locales, liées à l'<mark class="j">édition de liens</mark>, des API distantes
+      reposant sur des protocoles comme <mark class="j">REST</mark>, SOAP ou GraphQL, dont les contrats
+      d'interface sont souvent décrits selon la spécification <mark class="j">OpenAPI</mark>.</p>
+    </div>
+  </div>
+
+  <div class="carte" id="droite">
+    <div class="entete">Mode Vikidia · niveau collège</div>
+    <div class="vik">
+      <h2 id="vtitre">API</h2>
+      <p class="def" data-mots>Une API est un <span class="souligne" id="guichet">guichet</span> qui permet à deux logiciels de se parler.</p>
+      <p class="suite" data-mots>Un logiciel pose une question, l'autre lui envoie la réponse.</p>
+      <div class="boite exemple" id="bex"><div class="titre">Un exemple</div>
+        L'appli météo d'un téléphone n'a pas de satellite. Elle demande la température à l'API d'un service météo. L'API répond : « 18 °C ».</div>
+      <div class="boite savais" id="bsav"><div class="titre">Le savais-tu ?</div>
+        API veut dire « interface de programmation » en anglais.</div>
+    </div>
+  </div>
+
+  <div class="jauge" id="jg"><div class="lib"><span>Lisibilité</span><span><b id="ng">0</b>/100<small id="lg">très difficile</small></span></div><div class="rail"><i id="rg"></i></div></div>
+  <div class="jauge" id="jd"><div class="lib"><span>Lisibilité</span><span><b id="nd">0</b>/100<small id="ld">facile (collège)</small></span></div><div class="rail"><i id="rd"></i></div></div>
+
+  <div id="voile"></div>
+</div>
+
+<script>
+// ---- outils d'animation ----
+const clamp = x => Math.max(0, Math.min(1, x));
+const seg = (t, debut, duree) => clamp((t - debut) / duree);
+const outCubic = x => 1 - Math.pow(1 - x, 3);
+const inOutCubic = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const outBack = x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const mix = (a, b, p) => a + (b - a) * p;
+const $ = id => document.getElementById(id);
+
+const DUREE = 13;            // secondes, boucle complète
+const QUESTION = "C'est quoi une API ?";
+const SCORE_AVANT = 26, SCORE_APRES = 72;   // calculés par evals/lisibilite.py
+
+// découpe en mots des paragraphes data-mots (en gardant les balises internes)
+const groupes = [];
+document.querySelectorAll('[data-mots]').forEach(p => {
+  const mots = [];
+  const decouper = noeud => {
+    [...noeud.childNodes].forEach(n => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(?<=\s)/).forEach(m => {
+          if (!m) return;
+          const s = document.createElement('span'); s.className = 'mot'; s.textContent = m;
+          frag.appendChild(s); mots.push(s);
+        });
+        n.replaceWith(frag);
+      } else { n.classList.add('mot'); mots.push(n); }
+    });
+  };
+  decouper(p);
+  groupes.push(mots);
+});
+const marques = [...document.querySelectorAll('mark.j')];
+marques.forEach(m => { const q = document.createElement('span'); q.className = 'q'; q.textContent = '?'; m.appendChild(q); });
+
+function apparaitre(el, p, dy = 18) {
+  el.style.opacity = p;
+  el.style.transform = `translateY(${(1 - p) * dy}px)`;
+}
+
+// ---- la timeline ----
+function rendre(t) {
+  // 0 – 1,7 s : on tape la question
+  const nbLettres = Math.floor(seg(t, .35, 1.25) * QUESTION.length);
+  $('saisie').textContent = QUESTION.slice(0, nbLettres);
+  const tape = (t > .35 && t < 1.6) || (t > 4.75 && t < 5.25);
+  $('caret').style.opacity = tape || Math.floor(t * 2.2) % 2 === 0 ? 1 : 0;
+
+  // étape affichée en haut à droite
+  const etapes = [[0, "1 · La question"], [1.7, "2 · La réponse habituelle"], [4.7, "3 · On ajoute /vikidia"], [5.9, "4 · Le résultat"]];
+  const et = etapes.filter(e => t >= e[0]).pop();
+  $('etape').textContent = et[1];
+  const pe = Math.min(...etapes.map(e => t - e[0]).filter(x => x >= 0));
+  apparaitre($('etape'), outCubic(clamp(pe / .35)), -8);
+  const finale = outCubic(seg(t, 10.2, .6));
+  $('etape').parentElement.style.opacity = 1 - finale;
+  $('slogan').style.opacity = finale;
+  $('slogan').style.transform = `translateY(${(1 - finale) * 10}px)`;
+
+  // 1,7 s : la carte de gauche arrive, le texte se déroule
+  const pg = outCubic(seg(t, 1.7, .55));
+  const recul = inOutCubic(seg(t, 5.0, .6));
+  $('gauche').style.opacity = pg * mix(1, .82, recul);
+  $('gauche').style.transform = `translateY(${(1 - pg) * 40}px) scale(${mix(1, .975, recul)})`;
+  const deroule = seg(t, 1.95, .9);
+  $('wiki').style.clipPath = `inset(0 0 ${(1 - deroule) * 100}% 0)`;
+
+  // 2,9 s : les mots compliqués s'allument un par un
+  marques.forEach((m, i) => {
+    const pm = seg(t, 2.85 + i * .14, .3);
+    m.style.backgroundSize = `${outCubic(pm) * 100}% 100%`;
+    const q = m.querySelector('.q');
+    q.style.transform = `scale(${pm > 0 ? outBack(seg(t, 2.95 + i * .14, .35)) : 0})`;
+  });
+
+  // jauge de gauche
+  const jg = outCubic(seg(t, 4.1, .8));
+  apparaitre($('jg'), outCubic(seg(t, 3.9, .35)), 10);
+  $('rg').style.width = jg * SCORE_AVANT + '%';
+  $('ng').textContent = Math.round(jg * SCORE_AVANT);
+
+  // 4,8 s : la puce /vikidia se glisse dans la question
+  const pc = seg(t, 4.8, .45);
+  const chip = $('chip');
+  chip.style.maxWidth = outCubic(pc) * 110 + 'px';
+  chip.style.marginRight = outCubic(pc) * 12 + 'px';
+  chip.style.padding = pc > 0 ? '5px 12px' : '5px 0';
+  chip.style.transform = `scale(${pc > 0 ? mix(.6, 1, outBack(pc)) : 0})`;
+  const flash = Math.sin(seg(t, 5.15, .4) * Math.PI);
+  $('prompt').style.borderColor = flash > 0 ? `rgba(242,140,40,${.4 + flash * .6})` : '';
+  $('prompt').style.boxShadow = `0 6px 24px rgba(60,50,30,.06), 0 0 0 ${flash * 6}px rgba(242,140,40,.18)`;
+
+  // 5,4 s : la carte Vikidia arrive
+  const pd = seg(t, 5.4, .7);
+  $('droite').style.opacity = clamp(pd * 2.5);
+  $('droite').style.transform = `translateX(${(1 - outBack(pd)) * 70}px) rotate(${(1 - outCubic(pd)) * 2}deg)`;
+  apparaitre($('vtitre'), outCubic(seg(t, 5.75, .35)), 12);
+
+  // les mots arrivent un par un
+  let debut = 6.0;
+  groupes.forEach((mots, g) => {
+    mots.forEach((m, i) => {
+      const pm = outCubic(seg(t, debut + i * .055, .32));
+      m.style.opacity = pm;
+      m.style.transform = `translateY(${(1 - pm) * 10}px)`;
+    });
+    debut += mots.length * .055 + .25;
+  });
+  $('guichet').style.backgroundSize = `${outCubic(seg(t, 6.75, .4)) * 100}% 42%`;
+
+  apparaitre($('bex'), outBack(seg(t, 7.75, .55)), 26);
+  const ps = seg(t, 8.45, .55);
+  apparaitre($('bsav'), outBack(ps), 26);
+  $('bsav').style.transform += ` rotate(${(1 - outCubic(ps)) * -3}deg)`;
+
+  // jauge de droite
+  const jd = outCubic(seg(t, 9.1, 1.0));
+  apparaitre($('jd'), outCubic(seg(t, 8.95, .35)), 10);
+  $('rd').style.width = jd * SCORE_APRES + '%';
+  $('nd').textContent = Math.round(jd * SCORE_APRES);
+  const pop = Math.sin(seg(t, 10.0, .35) * Math.PI);
+  $('nd').style.display = 'inline-block';
+  $('nd').style.transform = `scale(${1 + pop * .25})`;
+
+  // fondu au début et à la fin, pour que la boucle soit propre
+  $('voile').style.opacity = Math.max(1 - seg(t, 0, .3), seg(t, DUREE - .45, .45));
+}
+
+const ancre = location.hash.match(/t=([\d.]+)/);
+if (ancre) rendre(parseFloat(ancre[1]));
+else {
+  const t0 = performance.now();
+  const boucle = () => { rendre(((performance.now() - t0) / 1000) % DUREE); requestAnimationFrame(boucle); };
+  boucle();
+}
+</script>
+</body>
+</html>

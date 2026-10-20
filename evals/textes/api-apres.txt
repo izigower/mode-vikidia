@@ -1,0 +1,3 @@
+Une API est un guichet qui permet à deux logiciels de se parler. Un logiciel pose une question. L'autre lui envoie la réponse.
+L'application météo d'un téléphone n'a pas de satellite. Elle demande la température à l'API d'un service météo. L'API répond : 18 degrés.
+API veut dire interface de programmation en anglais.

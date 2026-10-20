@@ -1,0 +1,11 @@
+{
+  "name": "mode-vikidia",
+  "owner": { "name": "izigower" },
+  "plugins": [
+    {
+      "name": "mode-vikidia",
+      "source": "./",
+      "description": "Explications dans le style de Vikidia : phrases courtes, mots difficiles expliqués, exemples du quotidien."
+    }
+  ]
+}
